@@ -34,6 +34,7 @@ builder.Services.AddControllers()
 builder.Services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
 builder.Services.AddScoped<IValidator<CheckInDto>, CheckInDtoValidator>();
 builder.Services.AddScoped<IValidator<SignatureDto>, SignatureDtoValidator>();
+builder.Services.AddScoped<IValidator<EmployeeListQueryDto>, EmployeeListQueryDtoValidator>();
 
 // Configure Entity Framework Core with SQL Server 
 builder.Services.AddDbContext<AppDbContext>(options =>

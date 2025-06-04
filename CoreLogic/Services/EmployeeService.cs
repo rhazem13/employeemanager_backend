@@ -81,5 +81,35 @@ namespace CoreLogic.Services
             employee.Signature = signatureDto.Signature;
             await _employeeRepository.UpdateAsync(employee);
         }
+
+        public async Task<EmployeeListDto> GetEmployeeListAsync(EmployeeListQueryDto query)
+        {
+            // Retrieve employees with pagination, sorting, and filtering
+            var employees = await _employeeRepository.GetAllAsync(query.PageNumber, query.PageSize, query.SortBy, query.Filter);
+
+            // Get total count for pagination
+            var totalCount = await _employeeRepository.CountAsync(query.Filter);
+
+            // Map to DTO
+            var employeeDtos = employees.Select(e => new EmployeeListItemDto
+            {
+                Id = e.Id,
+                FirstName = e.FirstName,
+                LastName = e.LastName,
+                PhoneNumber = e.PhoneNumber,
+                NationalId = e.NationalId,
+                Age = e.Age,
+                Email = e.Email,
+                Role = e.Role
+            }).ToList();
+
+            return new EmployeeListDto
+            {
+                Employees = employeeDtos,
+                TotalCount = totalCount,
+                PageNumber = query.PageNumber,
+                PageSize = query.PageSize
+            };
+        }
     }
 }

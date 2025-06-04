@@ -11,19 +11,21 @@ namespace Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = "Employee")] // Restrict to Employee role
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
         private readonly IValidator<SignatureDto> _signatureValidator;
+        private readonly IValidator<EmployeeListQueryDto> _employeeListQueryValidator;
 
-        public EmployeeController(IEmployeeService employeeService, IValidator<SignatureDto> signatureValidator)
+        public EmployeeController(IEmployeeService employeeService, IValidator<SignatureDto> signatureValidator, IValidator<EmployeeListQueryDto> employeeListQueryValidator)
         {
             _employeeService = employeeService;
             _signatureValidator = signatureValidator;
+            _employeeListQueryValidator = employeeListQueryValidator;
         }
 
         [HttpGet("profile")]
+        [Authorize(Policy = "Employee")] // Restrict to Employee role
         public async Task<IActionResult> GetProfile()
         {
             try
@@ -45,6 +47,7 @@ namespace Web.Controllers
         }
 
         [HttpPost("signature")]
+        [Authorize(Policy = "Employee")] // Restrict to Employee role
         public async Task<IActionResult> UpdateSignature([FromBody] SignatureDto signatureDto)
         {
             // Validate DTO
@@ -65,6 +68,28 @@ namespace Web.Controllers
 
                 await _employeeService.UpdateSignatureAsync(employeeId, signatureDto);
                 return Ok(new { message = "Signature updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("list")]
+        [Authorize(Policy = "Admin")] // Restrict to Admin role
+        public async Task<IActionResult> GetEmployeeList([FromQuery] EmployeeListQueryDto query)
+        {
+            // Validate query parameters
+            var validationResult = await _employeeListQueryValidator.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(new { errors = validationResult.Errors.Select(e => e.ErrorMessage) });
+            }
+
+            try
+            {
+                var employeeList = await _employeeService.GetEmployeeListAsync(query);
+                return Ok(employeeList);
             }
             catch (Exception ex)
             {

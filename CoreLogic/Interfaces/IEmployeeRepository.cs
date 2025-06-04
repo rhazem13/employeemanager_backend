@@ -14,6 +14,7 @@ namespace CoreLogic.Interfaces
         Task AddAsync(Employee employee);
         Task<Employee?> GetByIdAsync(int id);
         Task<IEnumerable<Employee>> GetAllAsync(int pageNumber, int pageSize, string? sortBy, string? filter);
+        Task<int> CountAsync(string? filter);
         Task UpdateAsync(Employee employee);
         Task DeleteAsync(int id);
     }

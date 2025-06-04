@@ -13,7 +13,21 @@ namespace DataAccess.Repositories
         {
             _context = context;
         }
+        public async Task<int> CountAsync(string? filter)
+        {
+            var query = _context.Employees.AsQueryable();
 
+            // Apply filtering
+            if (!string.IsNullOrEmpty(filter))
+            {
+                query = query.Where(e => e.FirstName.Contains(filter) ||
+                                        e.LastName.Contains(filter) ||
+                                        e.NationalId.Contains(filter) ||
+                                        e.PhoneNumber.Contains(filter));
+            }
+
+            return await query.CountAsync();
+        }
         public async Task<Employee?> GetByEmailAsync(string email)
         {
             return await _context.Employees

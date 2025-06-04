@@ -11,5 +11,6 @@ namespace CoreLogic.Interfaces
     {
         Task<EmployeeProfileDto> GetProfileAsync(int employeeId);
         Task UpdateSignatureAsync(int employeeId, SignatureDto signatureDto);
+        Task<EmployeeListDto> GetEmployeeListAsync(EmployeeListQueryDto query);
     }
 }
