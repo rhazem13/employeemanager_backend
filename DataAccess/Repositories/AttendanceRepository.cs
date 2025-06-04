@@ -43,15 +43,22 @@ namespace DataAccess.Repositories
             return await query.OrderBy(a => a.CheckInTime).ToListAsync();
         }
 
-        public async Task<IEnumerable<Attendance>> GetAllAsync(DateTime date)
+        public async Task<IEnumerable<Attendance>> GetAllAsync(DateTime? startDate, DateTime? endDate, int? employeeId)
         {
-            var startOfDay = date.Date;
-            var endOfDay = startOfDay.AddDays(1);
-            return await _context.Attendances
+            var query = _context.Attendances
                 .Include(a => a.Employee)
-                .Where(a => a.CheckInTime >= startOfDay && a.CheckInTime < endOfDay)
-                .OrderBy(a => a.CheckInTime)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (startDate.HasValue)
+                query = query.Where(a => a.CheckInTime >= startDate.Value.Date);
+
+            if (endDate.HasValue)
+                query = query.Where(a => a.CheckInTime < endDate.Value.Date.AddDays(1));
+
+            if (employeeId.HasValue)
+                query = query.Where(a => a.EmployeeId == employeeId.Value);
+
+            return await query.OrderBy(a => a.CheckInTime).ToListAsync();
         }
     }
 }

@@ -106,5 +106,61 @@ namespace CoreLogic.Services
                 WeeklySummaries = weeklySummaries
             };
         }
+
+        public async Task<AttendanceTrackingDto> GetAttendanceTrackingAsync(AttendanceQueryDto query)
+        {
+            // Get attendance records with employee details
+            var attendances = await _attendanceRepository.GetAllAsync(query.StartDate, query.EndDate, query.EmployeeId);
+
+            // Map to daily records
+            var dailyRecords = attendances.Select(a => new DailyAttendanceRecord
+            {
+                AttendanceId = a.Id,
+                EmployeeId = a.EmployeeId,
+                FirstName = a.Employee.FirstName,
+                LastName = a.Employee.LastName,
+                CheckInTime = a.CheckInTime
+            }).ToList();
+
+            // Calculate weekly working hours (8 hours per check-in)
+            var weeklySummaries = new List<WeeklyWorkingHours>();
+            if (dailyRecords.Any())
+            {
+                var minDate = dailyRecords.Min(r => r.CheckInTime.Date);
+                var maxDate = dailyRecords.Max(r => r.CheckInTime.Date);
+                var currentWeekStart = minDate.AddDays(-(int)minDate.DayOfWeek + (int)DayOfWeek.Monday);
+
+                var groupedByEmployee = dailyRecords.GroupBy(r => r.EmployeeId).ToList();
+
+                foreach (var employeeGroup in groupedByEmployee)
+                {
+                    var employee = await _employeeRepository.GetByIdAsync(employeeGroup.Key);
+                    while (currentWeekStart <= maxDate)
+                    {
+                        var weekEnd = currentWeekStart.AddDays(7);
+                        var checkInCount = employeeGroup
+                            .Count(r => r.CheckInTime.Date >= currentWeekStart && r.CheckInTime.Date < weekEnd);
+                        weeklySummaries.Add(new WeeklyWorkingHours
+                        {
+                            EmployeeId = employeeGroup.Key,
+                            FirstName = employee?.FirstName ?? "Unknown",
+                            LastName = employee?.LastName ?? "Unknown",
+                            WeekStart = currentWeekStart,
+                            CheckInCount = checkInCount,
+                            HoursWorked = checkInCount * 8 // 8 hours per check-in
+                        });
+                        currentWeekStart = weekEnd;
+                    }
+                    // Reset currentWeekStart for the next employee
+                    currentWeekStart = minDate.AddDays(-(int)minDate.DayOfWeek + (int)DayOfWeek.Monday);
+                }
+            }
+
+            return new AttendanceTrackingDto
+            {
+                DailyRecords = dailyRecords,
+                WeeklySummaries = weeklySummaries
+            };
+        }
     }
 }

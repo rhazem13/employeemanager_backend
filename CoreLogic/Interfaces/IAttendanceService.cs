@@ -11,6 +11,7 @@ namespace CoreLogic.Interfaces
     {
         Task CheckInAsync(int employeeId, CheckInDto checkInDto);
         Task<CheckInHistoryDto> GetCheckInHistoryAsync(int employeeId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<AttendanceTrackingDto> GetAttendanceTrackingAsync(AttendanceQueryDto query);
 
     }
 }

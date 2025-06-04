@@ -12,6 +12,6 @@ namespace CoreLogic.Interfaces
         Task AddAsync(Attendance attendance);
         Task<bool> HasCheckedInTodayAsync(int employeeId, DateTime date);
         Task<IEnumerable<Attendance>> GetByEmployeeIdAsync(int employeeId, DateTime? startDate = null, DateTime? endDate = null);
-        Task<IEnumerable<Attendance>> GetAllAsync(DateTime date);
+        Task<IEnumerable<Attendance>> GetAllAsync(DateTime? startDate, DateTime? endDate, int? employeeId);
     }
 }
