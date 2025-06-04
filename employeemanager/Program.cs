@@ -1,29 +1,39 @@
+using CoreLogic.Interfaces;
+using CoreLogic.Services;
+using DataAccess.Data;
+using DataAccess.Repositories;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using DataAccess.Data;
-
-//using employeemanager.CoreLogic.Services;
-//using employeemanager.CoreLogic.Interfaces;
-//using employeemanager.DataAccess.Repositories;
 using System.Text;
-using CoreLogic.Interfaces;
-using DataAccess.Repositories;
+using System.Text.Json.Serialization; // Added for enum string conversion
+using Web.Validators; // Added for validators
+using static CoreLogic.DTOs.AuthDtos;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configure JSON to handle enum strings
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
-builder.Services.AddControllers();
+// Register FluentValidation
+builder.Services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
 
-// Configure Entity Framework Core with SQL Server (update connection string as needed)
+// Configure Entity Framework Core with SQL Server 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("LocalDevelopmentServer")));
 
+// Register repositories and services
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Configure JWT Authentication
 builder.Services.AddAuthentication(options =>

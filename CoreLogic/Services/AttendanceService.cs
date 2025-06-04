@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess.Repositories
+namespace CoreLogic.Services
 {
-    public class EmployeeService : IEmployeeService
+    public class AttendanceService : IAttendanceService
     {
     }
 }
