@@ -50,5 +50,26 @@ namespace Web.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("history")]
+        public async Task<IActionResult> GetCheckInHistory([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        {
+            try
+            {
+                // Extract employee ID from JWT token
+                var employeeIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(employeeIdClaim) || !int.TryParse(employeeIdClaim, out var employeeId))
+                {
+                    return Unauthorized(new { message = "Invalid token." });
+                }
+
+                var history = await _attendanceService.GetCheckInHistoryAsync(employeeId, startDate, endDate);
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

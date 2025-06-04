@@ -61,5 +61,50 @@ namespace CoreLogic.Services
 
             await _attendanceRepository.AddAsync(attendance);
         }
+
+        public async Task<CheckInHistoryDto> GetCheckInHistoryAsync(int employeeId, DateTime? startDate = null, DateTime? endDate = null)
+        {
+            // Verify employee exists
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+                throw new Exception("Employee not found.");
+
+            // Get check-in records
+            var checkIns = await _attendanceRepository.GetByEmployeeIdAsync(employeeId, startDate, endDate);
+            var checkInRecords = checkIns.Select(a => new CheckInRecord
+            {
+                Id = a.Id,
+                CheckInTime = a.CheckInTime
+            }).ToList();
+
+            // Calculate weekly summaries
+            var weeklySummaries = new List<WeeklySummary>();
+            if (checkInRecords.Any())
+            {
+                // Group check-ins by week (Monday to Sunday)
+                var minDate = checkInRecords.Min(c => c.CheckInTime.Date);
+                var maxDate = checkInRecords.Max(c => c.CheckInTime.Date);
+                var currentWeekStart = minDate.AddDays(-(int)minDate.DayOfWeek + (int)DayOfWeek.Monday);
+
+                while (currentWeekStart <= maxDate)
+                {
+                    var weekEnd = currentWeekStart.AddDays(7);
+                    var weekCheckIns = checkInRecords
+                        .Count(c => c.CheckInTime.Date >= currentWeekStart && c.CheckInTime.Date < weekEnd);
+                    weeklySummaries.Add(new WeeklySummary
+                    {
+                        WeekStart = currentWeekStart,
+                        CheckInCount = weekCheckIns
+                    });
+                    currentWeekStart = weekEnd;
+                }
+            }
+
+            return new CheckInHistoryDto
+            {
+                CheckIns = checkInRecords,
+                WeeklySummaries = weeklySummaries
+            };
+        }
     }
 }
