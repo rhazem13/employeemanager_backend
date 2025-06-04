@@ -1,3 +1,4 @@
+using CoreLogic.DTOs;
 using CoreLogic.Interfaces;
 using CoreLogic.Services;
 using DataAccess.Data;
@@ -6,12 +7,20 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization; // Added for enum string conversion
 using Web.Validators; // Added for validators
 using static CoreLogic.DTOs.AuthDtos;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Logging
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+    logging.AddDebug();
+});
 
 // Add services to the container.
 builder.Services.AddControllers()
@@ -23,6 +32,7 @@ builder.Services.AddControllers()
 
 // Register FluentValidation
 builder.Services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
+builder.Services.AddScoped<IValidator<CheckInDto>, CheckInDtoValidator>();
 
 // Configure Entity Framework Core with SQL Server 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -75,7 +85,31 @@ builder.Services.AddCors(options =>
 
 // Add swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition(name: JwtBearerDefaults.AuthenticationScheme, securityScheme: new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Enter the bearer Authorization : `Bearer Generated-JWT-Token`",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = JwtBearerDefaults.AuthenticationScheme
+                    }
+                },
+                new string[] {}
+            }
+        });
+});
 
 var app = builder.Build();
 
