@@ -16,12 +16,21 @@ namespace Web.Controllers
         private readonly IEmployeeService _employeeService;
         private readonly IValidator<SignatureDto> _signatureValidator;
         private readonly IValidator<EmployeeListQueryDto> _employeeListQueryValidator;
+        private readonly IValidator<AddEmployeeDto> _addEmployeeValidator;
+        private readonly IValidator<EditEmployeeDto> _editEmployeeValidator;
 
-        public EmployeeController(IEmployeeService employeeService, IValidator<SignatureDto> signatureValidator, IValidator<EmployeeListQueryDto> employeeListQueryValidator)
+        public EmployeeController(
+            IEmployeeService employeeService,
+            IValidator<SignatureDto> signatureValidator,
+            IValidator<EmployeeListQueryDto> employeeListQueryValidator,
+            IValidator<AddEmployeeDto> addEmployeeValidator,
+            IValidator<EditEmployeeDto> editEmployeeValidator)
         {
             _employeeService = employeeService;
             _signatureValidator = signatureValidator;
             _employeeListQueryValidator = employeeListQueryValidator;
+            _addEmployeeValidator = addEmployeeValidator;
+            _editEmployeeValidator = editEmployeeValidator;
         }
 
         [HttpGet("profile")]
@@ -95,6 +104,69 @@ namespace Web.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> AddEmployee([FromBody] AddEmployeeDto addEmployeeDto)
+        {
+            // Validate DTO
+            var validationResult = await _addEmployeeValidator.ValidateAsync(addEmployeeDto);
+            if (!validationResult.IsValid)
+                return BadRequest(new { errors = validationResult.Errors.Select(e => e.ErrorMessage) });
+
+            try
+            {
+                await _employeeService.AddEmployeeAsync(addEmployeeDto);
+                return Ok(new { message = "Employee added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> EditEmployee(int id, [FromBody] EditEmployeeDto editEmployeeDto)
+        {
+            // Validate DTO
+            var validationResult = await _editEmployeeValidator.ValidateAsync(editEmployeeDto);
+            if (!validationResult.IsValid)
+                return BadRequest(new { errors = validationResult.Errors.Select(e => e.ErrorMessage) });
+
+            try
+            {
+                await _employeeService.EditEmployeeAsync(id, editEmployeeDto);
+                return Ok(new { message = "Employee updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> DeleteEmployee(int id)
+        {
+            try
+            {
+                await _employeeService.DeleteEmployeeAsync(id);
+                return Ok(new { message = "Employee deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        private async Task<(bool HasValue, int Value, string? ErrorMessage)> VerifyEmployeeIdAsync()
+        {
+            var employeeIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(employeeIdClaim) || !int.TryParse(employeeIdClaim, out var employeeId))
+                return (false, 0, "Invalid token.");
+            return (true, employeeId, null);
         }
     }
 }

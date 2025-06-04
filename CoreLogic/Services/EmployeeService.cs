@@ -1,5 +1,6 @@
 ﻿using CoreLogic.DTOs;
 using CoreLogic.Interfaces;
+using Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -110,6 +111,73 @@ namespace CoreLogic.Services
                 PageNumber = query.PageNumber,
                 PageSize = query.PageSize
             };
+        }
+
+        public async Task AddEmployeeAsync(AddEmployeeDto addEmployeeDto)
+        {
+            // Check for existing email or national ID
+            var existingEmail = await _employeeRepository.GetByEmailAsync(addEmployeeDto.Email);
+            if (existingEmail != null)
+                throw new Exception("Email is already in use.");
+
+            var existingNationalId = await _employeeRepository.GetByNationalIdAsync(addEmployeeDto.NationalId);
+            if (existingNationalId != null)
+                throw new Exception("National ID is already in use.");
+
+            // Create new employee
+            var employee = new Employee
+            {
+                FirstName = addEmployeeDto.FirstName,
+                LastName = addEmployeeDto.LastName,
+                PhoneNumber = addEmployeeDto.PhoneNumber,
+                NationalId = addEmployeeDto.NationalId,
+                Age = addEmployeeDto.Age,
+                Email = addEmployeeDto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(addEmployeeDto.Password),
+                Role = addEmployeeDto.Role,
+                Signature = addEmployeeDto.Signature
+            };
+
+            await _employeeRepository.AddAsync(employee);
+        }
+
+        public async Task EditEmployeeAsync(int employeeId, EditEmployeeDto editEmployeeDto)
+        {
+            // Retrieve employee
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+                throw new Exception("Employee not found.");
+
+            // Check for email or national ID conflicts
+            var existingEmail = await _employeeRepository.GetByEmailAsync(editEmployeeDto.Email);
+            if (existingEmail != null && existingEmail.Id != employeeId)
+                throw new Exception("Email is already in use by another employee.");
+
+            var existingNationalId = await _employeeRepository.GetByNationalIdAsync(editEmployeeDto.NationalId);
+            if (existingNationalId != null && existingNationalId.Id != employeeId)
+                throw new Exception("National ID is already in use by another employee.");
+
+            // Update employee
+            employee.FirstName = editEmployeeDto.FirstName;
+            employee.LastName = editEmployeeDto.LastName;
+            employee.PhoneNumber = editEmployeeDto.PhoneNumber;
+            employee.NationalId = editEmployeeDto.NationalId;
+            employee.Age = editEmployeeDto.Age;
+            employee.Email = editEmployeeDto.Email;
+            employee.Role = editEmployeeDto.Role;
+            employee.Signature = editEmployeeDto.Signature;
+
+            await _employeeRepository.UpdateAsync(employee);
+        }
+
+        public async Task DeleteEmployeeAsync(int employeeId)
+        {
+            // Retrieve employee
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+                throw new Exception("Employee not found.");
+
+            await _employeeRepository.DeleteAsync(employeeId);
         }
     }
 }
