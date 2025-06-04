@@ -33,6 +33,7 @@ builder.Services.AddControllers()
 // Register FluentValidation
 builder.Services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
 builder.Services.AddScoped<IValidator<CheckInDto>, CheckInDtoValidator>();
+builder.Services.AddScoped<IValidator<SignatureDto>, SignatureDtoValidator>();
 
 // Configure Entity Framework Core with SQL Server 
 builder.Services.AddDbContext<AppDbContext>(options =>
