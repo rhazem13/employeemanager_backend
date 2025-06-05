@@ -60,5 +60,16 @@ namespace DataAccess.Repositories
 
             return await query.OrderBy(a => a.CheckInTime).ToListAsync();
         }
+
+        public async Task<int> CountCheckedInTodayAsync(DateTime date)
+        {
+            var startOfDay = date.Date;
+            var endOfDay = startOfDay.AddDays(1);
+            return await _context.Attendances
+                .Where(a => a.CheckInTime >= startOfDay && a.CheckInTime < endOfDay)
+                .Select(a => a.EmployeeId)
+                .Distinct()
+                .CountAsync();
+        }
     }
 }

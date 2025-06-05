@@ -16,6 +16,7 @@ namespace CoreLogic.Interfaces
         Task EditEmployeeAsync(int employeeId, EditEmployeeDto editEmployeeDto);
         Task DeleteEmployeeAsync(int employeeId);
         Task<EditEmployeeDto> GetEmployeeByIdAsync(int employeeId);
+        Task<EmployeePersonalDataDto> GetPersonalDataAsync(int employeeId);
 
     }
 }

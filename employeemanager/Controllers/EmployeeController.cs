@@ -55,6 +55,28 @@ namespace Web.Controllers
             }
         }
 
+        [HttpGet("personal-data")]
+        [Authorize(Policy = "Employee")]
+        public async Task<IActionResult> GetPersonalData()
+        {
+            try
+            {
+                // Extract employee ID from JWT token
+                var employeeIdClaim = await VerifyEmployeeIdAsync();
+                if (!employeeIdClaim.HasValue)
+                {
+                    return Unauthorized(new { message = employeeIdClaim.ErrorMessage });
+                }
+
+                var personalData = await _employeeService.GetPersonalDataAsync(employeeIdClaim.Value);
+                return Ok(personalData);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("signature")]
         [Authorize(Policy = "Employee")] // Restrict to Employee role
         public async Task<IActionResult> UpdateSignature([FromBody] SignatureDto signatureDto)

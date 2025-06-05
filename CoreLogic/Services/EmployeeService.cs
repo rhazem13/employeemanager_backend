@@ -200,5 +200,25 @@ namespace CoreLogic.Services
                 Signature = employee.Signature
             };
         }
+
+        public async Task<EmployeePersonalDataDto> GetPersonalDataAsync(int employeeId)
+        {
+            // Retrieve employee
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+                throw new Exception("Employee not found.");
+
+            // Map to EmployeePersonalDataDto
+            return new EmployeePersonalDataDto
+            {
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                PhoneNumber = employee.PhoneNumber,
+                NationalId = employee.NationalId,
+                Age = employee.Age,
+                Signature = employee.Signature,
+                Email = employee.Email
+            };
+        }
     }
 }
