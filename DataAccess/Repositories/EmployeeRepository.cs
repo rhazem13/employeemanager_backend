@@ -23,7 +23,8 @@ namespace DataAccess.Repositories
                 query = query.Where(e => e.FirstName.Contains(filter) ||
                                         e.LastName.Contains(filter) ||
                                         e.NationalId.Contains(filter) ||
-                                        e.PhoneNumber.Contains(filter));
+                                        e.PhoneNumber.Contains(filter) || 
+                                        e.Email.Contains(filter));
             }
 
             return await query.CountAsync();
@@ -62,7 +63,7 @@ namespace DataAccess.Repositories
                 query = query.Where(e => e.FirstName.Contains(filter) ||
                                         e.LastName.Contains(filter) ||
                                         e.NationalId.Contains(filter) ||
-                                        e.PhoneNumber.Contains(filter));
+                                        e.PhoneNumber.Contains(filter) || e.Email.Contains(filter));
             }
 
             // Apply sorting
