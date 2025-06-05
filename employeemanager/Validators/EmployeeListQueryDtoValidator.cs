@@ -14,13 +14,30 @@ namespace Web.Validators
                 .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
 
             RuleFor(x => x.SortBy)
-                .Must(BeValidSortField).WithMessage("SortBy must be 'firstname', 'lastname', 'age', or null.")
+                .Must(BeValidSortBy).WithMessage("SortBy must be one of: firstname, lastname, age.")
                 .When(x => !string.IsNullOrEmpty(x.SortBy));
+
+            RuleFor(x => x.SortDirection)
+                .Must(BeValidSortDirection).WithMessage("SortDirection must be 'asc' or 'desc'.")
+                .When(x => !string.IsNullOrEmpty(x.SortDirection));
         }
 
-        private bool BeValidSortField(string? sortBy)
+        private bool BeValidSortBy(string? sortBy)
         {
-            return sortBy != null && new[] { "firstname", "lastname", "age" }.Contains(sortBy.ToLower());
+            if (string.IsNullOrEmpty(sortBy))
+                return true;
+
+            var validSortFields = new[] { "firstname", "lastname", "age" };
+            return validSortFields.Contains(sortBy.ToLower());
+        }
+
+        private bool BeValidSortDirection(string? sortDirection)
+        {
+            if (string.IsNullOrEmpty(sortDirection))
+                return true;
+
+            var validDirections = new[] { "asc", "desc" };
+            return validDirections.Contains(sortDirection.ToLower());
         }
     }
 }

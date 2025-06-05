@@ -86,7 +86,7 @@ namespace CoreLogic.Services
         public async Task<EmployeeListDto> GetEmployeeListAsync(EmployeeListQueryDto query)
         {
             // Retrieve employees with pagination, sorting, and filtering
-            var employees = await _employeeRepository.GetAllAsync(query.PageNumber, query.PageSize, query.SortBy, query.Filter);
+            var employees = await _employeeRepository.GetAllAsync(query.PageNumber, query.PageSize, query.SortBy, query.SortDirection, query.Filter);
 
             // Get total count for pagination
             var totalCount = await _employeeRepository.CountAsync(query.Filter);

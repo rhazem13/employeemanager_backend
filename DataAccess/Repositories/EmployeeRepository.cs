@@ -52,7 +52,7 @@ namespace DataAccess.Repositories
                 .FirstOrDefaultAsync(e => e.Id == id);
         }
 
-        public async Task<IEnumerable<Employee>> GetAllAsync(int pageNumber, int pageSize, string? sortBy, string? filter)
+        public async Task<IEnumerable<Employee>> GetAllAsync(int pageNumber, int pageSize, string? sortBy, string? sortDirection, string? filter)
         {
             var query = _context.Employees.AsQueryable();
 
@@ -68,21 +68,27 @@ namespace DataAccess.Repositories
             // Apply sorting
             if (!string.IsNullOrEmpty(sortBy))
             {
+                bool isDescending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+
                 switch (sortBy.ToLower())
                 {
                     case "firstname":
-                        query = query.OrderBy(e => e.FirstName);
+                        query = isDescending ? query.OrderByDescending(e => e.FirstName) : query.OrderBy(e => e.FirstName);
                         break;
                     case "lastname":
-                        query = query.OrderBy(e => e.LastName);
+                        query = isDescending ? query.OrderByDescending(e => e.LastName) : query.OrderBy(e => e.LastName);
                         break;
                     case "age":
-                        query = query.OrderBy(e => e.Age);
+                        query = isDescending ? query.OrderByDescending(e => e.Age) : query.OrderBy(e => e.Age);
                         break;
                     default:
                         query = query.OrderBy(e => e.Id);
                         break;
                 }
+            }
+            else
+            {
+                query = query.OrderBy(e => e.Id); // Default sorting
             }
 
             // Apply pagination
