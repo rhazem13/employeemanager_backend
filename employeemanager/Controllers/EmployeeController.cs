@@ -161,6 +161,21 @@ namespace Web.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        [Authorize(Policy = "Admin")]
+        public async Task<IActionResult> GetEmployeeById(int id)
+        {
+            try
+            {
+                var employee = await _employeeService.GetEmployeeByIdAsync(id);
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         private async Task<(bool HasValue, int Value, string? ErrorMessage)> VerifyEmployeeIdAsync()
         {
             var employeeIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

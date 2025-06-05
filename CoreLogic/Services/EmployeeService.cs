@@ -179,5 +179,26 @@ namespace CoreLogic.Services
 
             await _employeeRepository.DeleteAsync(employeeId);
         }
+
+        public async Task<EditEmployeeDto> GetEmployeeByIdAsync(int employeeId)
+        {
+            // Retrieve employee
+            var employee = await _employeeRepository.GetByIdAsync(employeeId);
+            if (employee == null)
+                throw new Exception("Employee not found.");
+
+            // Map to EditEmployeeDto
+            return new EditEmployeeDto
+            {
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                PhoneNumber = employee.PhoneNumber,
+                NationalId = employee.NationalId,
+                Age = employee.Age,
+                Email = employee.Email,
+                Role = employee.Role,
+                Signature = employee.Signature
+            };
+        }
     }
 }
